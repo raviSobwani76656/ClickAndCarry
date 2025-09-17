@@ -91,4 +91,52 @@ const deleteProduct = async (req, res) => {
   }
 };
 
-module.exports = { createProduct, updateProduct };
+const getSingleProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const productToGet = await Product.findById(id);
+
+    if (!productToGet) {
+      return res
+        .status(404)
+        .json({ message: "The product you are looking for does not exist" });
+    }
+
+    res.status(200).json({
+      status: true,
+      message: "Product Retrived Successfully",
+      product: productToGet,
+    });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ status: false, message: "Internal Server Error" });
+  }
+};
+
+const getAllProducts = async (req, res) => {
+  try {
+    const allProducts = await Product.find().sort({ createdAt: -1 });
+
+    res.status(200).json({
+      status: true,
+      message: "Products Retrived Successfully",
+      products: allProducts,
+    });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ status: false, message: "Internal Server Error" });
+  }
+};
+
+module.exports = {
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  getAllProducts,
+  getSingleProduct,
+};
