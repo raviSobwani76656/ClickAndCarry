@@ -9,10 +9,10 @@ mongoose
     useUnifiedTopology: true, // Use the new unified topology engine (more reliable connection)
   })
   .then(() => {
-    console.log("✅ MongoDB Connection Successful");
+    console.log("MongoDB Connection Successful");
   })
   .catch((err) => {
-    console.log("❌ MongoDB Connection Failed Due to Error:", err);
+    console.log("MongoDB Connection Failed Due to Error:", err);
   });
 
 module.exports = mongoose;
