@@ -58,6 +58,7 @@ const updateCart = async (req, res) => {
     requiredCart.cartItems = cartItems;
     requiredCart.totalAmount = totalAmount;
 
+    await Cart.find;
     await requiredCart.save();
 
     return res
@@ -100,3 +101,5 @@ const emptyCart = async (req, res) => {
       .json({ status: false, message: "Internal Server Error" });
   }
 };
+
+module.exports = { addItems, emptyCart, updateCart };
