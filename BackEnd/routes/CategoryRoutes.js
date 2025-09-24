@@ -12,3 +12,4 @@ router.get("getCategories", getCategories);
 router.post("createCategory", createCategory);
 
 module.exports = router;
+0;

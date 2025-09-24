@@ -3,7 +3,10 @@ const Cart = require("../models/Cart");
 const addItems = async (req, res) => {
   try {
     const { cartItems, totalAmount } = req.body;
-    const userId = req.user._id;
+    const userId = req.user.id;
+    console.log("userId", userId);
+    console.log("cartItems", cartItems);
+    console.log("totalamoutn:", totalAmount);
 
     if (!userId || !cartItems || !totalAmount) {
       return res

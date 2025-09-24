@@ -1,4 +1,9 @@
 const User = require("../models/User");
+const {
+  accessTokenGenerator,
+  refreshTokenGenerator,
+} = require("../utils/jwtTokenGenerator");
+const crypto = require("crypto");
 
 const createAccount = async function (req, res) {
   try {
@@ -35,6 +40,9 @@ const createAccount = async function (req, res) {
 
 const login = async (req, res) => {
   try {
+    console.log("req.body", req.body);
+
+    console.log("HEaders", req.headers["content-type"]);
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -59,7 +67,41 @@ const login = async (req, res) => {
         .json({ status: false, message: "Password Not Correct" });
     }
 
-    res.status(200).json({ status: true, message: "Login SuccessFull" });
+    const accessTokenValue = accessTokenGenerator({
+      id: requiredUser._id,
+      email: requiredUser.email,
+    });
+
+    const refreshTokenValue = refreshTokenGenerator({
+      id: requiredUser._id,
+      email: requiredUser.email,
+    });
+
+    const tokenHash = crypto
+      .createHash("sha256")
+      .update(refreshTokenValue)
+      .digest("hex");
+
+    requiredUser.refreshTokens.push({
+      tokenHash,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
+
+    await requiredUser.save();
+
+    res.cookie("refreshToken", refreshTokenValue, {
+      httpOnly: true, // The cookie cannot be accessed by JavaScript on the client side (helps prevent XSS attacks)
+      secure: process.env.NODE_ENV === "production", // Cookie is sent only over HTTPS when in production
+      samesite: "Strict", // Cookie is only sent in requests originating from the same site (prevents CSRF attacks)
+      maxAge: 7 * 24 * 60 * 60 * 1000, // Cookie expiration time in milliseconds (7 days). Note: should likely be 7 * 24 * 60 * 60 * 1000 for exact 7 days
+    });
+
+    res.status(200).json({
+      status: true,
+      message: "Login SuccessFull",
+      accessTokenValue,
+      user: requiredUser,
+    });
   } catch (error) {
     console.log(error);
     return res
@@ -70,6 +112,7 @@ const login = async (req, res) => {
 
 const logout = async function (req, res) {
   try {
+    res.clearCookie("refreshToken");
     res.status(200).json({ status: true, message: "Logout SuccessFull" });
   } catch (error) {
     console.log(error);
