@@ -2,9 +2,10 @@ const Review = require("../models/Review");
 
 const addReview = async (req, res) => {
   try {
-    const { productId, ratings, comment } = req.body;
+    const { productId, ratings, comment, helpfulVotes, verifiedPurchase } =
+      req.body;
 
-    const userId = req.user._id;
+    const userId = req.user.id;
 
     if (!productId || !userId || !comment) {
       return res
@@ -12,13 +13,22 @@ const addReview = async (req, res) => {
         .json({ status: false, message: "Enter Valid Information" });
     }
 
+    const exisitingReview = await Review.findOne({ userId });
+
+    if (exisitingReview) {
+      return res.status(400).json({
+        status: false,
+        message: "User Already Reviewed the product",
+      });
+    }
+
     const addedReview = new Review({
       productId,
       userId,
       ratings,
       comment,
-      helpfulVotes,
-      verifiedPurchase,
+      helpfulVotes: helpfulVotes || 0,
+      verifiedPurchase: verifiedPurchase || false,
     });
 
     await addedReview.save();
@@ -30,4 +40,9 @@ const addReview = async (req, res) => {
     console.error(error);
     res.status(500).json({ status: false, message: "Interval Server Error" });
   }
+};
+
+module.exports = {
+  addReview,
+  deleteReview,
 };
