@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const crypto = require("crypto");
-const { accessToken } = require("../utils/jwtTokenGenerator");
+const { accessTokenGenerator } = require("../utils/jwtTokenGenerator");
 
 const authenticateUser = async (req, res, next) => {
   try {
@@ -36,7 +36,7 @@ const authenticateUser = async (req, res, next) => {
           .json({ status: false, message: "Invalid or expired refresh token" });
 
       // Generate new access token
-      token = accessToken({ id: user._id, email: user.email });
+      token = accessTokenGenerator({ id: user._id, email: user.email });
       res.setHeader("x-access-token", token);
 
       req.user = { id: user._id };
