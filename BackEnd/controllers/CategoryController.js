@@ -1,7 +1,7 @@
 const { mongoose } = require("mongoose");
 const Category = require("../models/Category");
 
-const createCategory = async (req, res) => {
+exports.createCategory = async (req, res) => {
   try {
     const { categoryName, description } = req.body;
     if (!categoryName || !description) {
@@ -40,7 +40,7 @@ const createCategory = async (req, res) => {
   }
 };
 
-const getCategories = async (req, res) => {
+exports.getCategories = async (req, res) => {
   try {
     const allCategories = await Category.find().sort({ createdAt: -1 });
 
@@ -58,7 +58,7 @@ const getCategories = async (req, res) => {
   }
 };
 
-const getASingleCategory = async (req, res) => {
+exports.getASingleCategory = async (req, res) => {
   try {
     const { id } = req.params;
     if (!id || !mongoose.Types.ObjectId.isValid(id)) {
@@ -86,5 +86,3 @@ const getASingleCategory = async (req, res) => {
       .json({ status: false, message: "Internal Server Error" });
   }
 };
-
-module.exports = { getASingleCategory, getCategories, createCategory };
