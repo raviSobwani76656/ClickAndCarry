@@ -25,12 +25,12 @@ const orderRoutes = require("./routes/OrderRoutes");
 const cartRoutes = require("./routes/CartRoutes");
 const reviewRoutes = require("./routes/ReviewRoutes");
 
-app.use("/user", userRoutes);
-app.use("/product", productRoutes);
-app.use("/category", categoryRoutes);
-app.use("/order", orderRoutes);
-app.use("/cart", cartRoutes);
-app.use("/review", reviewRoutes);
+app.use("/users", userRoutes);
+app.use("/products", productRoutes);
+app.use("/categorys", categoryRoutes);
+app.use("/orders", orderRoutes);
+app.use("/carts", cartRoutes);
+app.use("/reviews", reviewRoutes);
 
 // Test endpoint
 app.get("/", (req, res) => {
