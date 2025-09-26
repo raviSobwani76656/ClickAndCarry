@@ -8,9 +8,9 @@ const {
   logout,
 } = require("../controllers/UserController");
 
-router.post("/createAccount", createAccount);
+router.post("/", createAccount);
 
 router.post("/login", login);
-router.post("/logut", logout);
+router.post("/logout", logout);
 
 module.exports = router;

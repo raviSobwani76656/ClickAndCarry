@@ -4,7 +4,7 @@ const authenticateUser = require("../middleware/auth");
 
 const router = express.Router();
 
-router.post("createOrder", authenticateUser, createOrder);
-router.delete("cancelOrder", authenticateUser, cancelOrder);
+router.post("/", authenticateUser, createOrder);
+router.delete("/:id", authenticateUser, cancelOrder);
 
 module.exports = router;

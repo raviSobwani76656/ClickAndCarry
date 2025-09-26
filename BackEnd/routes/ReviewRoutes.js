@@ -3,7 +3,7 @@ const express = require("express");
 const router = express.Router();
 const authenticateUser = require("../middleware/auth");
 
-router.post("/addReview", authenticateUser, addReview);
-router.delete("/deleteReview/:productId", authenticateUser, deleteReview);
+router.post("/", authenticateUser, addReview);
+router.delete("/:id", authenticateUser, deleteReview);
 
 module.exports = router;
