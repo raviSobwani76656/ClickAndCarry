@@ -12,7 +12,7 @@ const createOrder = async (req, res) => {
       shippingAddress,
     } = req.body;
 
-    const userId = req.user._id;
+    const userId = req.user.id;
 
     if (
       !userId ||
@@ -56,8 +56,12 @@ const cancelOrder = async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (!id || !mongoose.Schema.Types.isValid(id)) {
-      return res.status(400).json({ status: false, message: "Desired " });
+    console.log(id);
+
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      return res
+        .status(400)
+        .json({ status: false, message: "Enter the Valid Order Id" });
     }
 
     const orderTodelete = await Order.findByIdAndDelete(id);
