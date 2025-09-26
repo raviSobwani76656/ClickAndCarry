@@ -1,3 +1,4 @@
+const { default: mongoose } = require("mongoose");
 const Review = require("../models/Review");
 
 const addReview = async (req, res) => {
@@ -45,31 +46,47 @@ const addReview = async (req, res) => {
 const deleteReview = async (req, res) => {
   try {
     const userId = req.user.id;
+    const productId = req.params.productId; // Removed .replace(/"/g, "")
 
-    if (!userId) {
+    console.log("Received productId:", productId); // Debug log
+    console.log("UserId:", userId);
+
+    // Check for missing inputs first
+    if (!userId || !productId) {
+      return res.status(400).json({
+        status: false,
+        message: "Please provide valid user and product IDs",
+      });
+    }
+
+    // Validate productId as a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
       return res
         .status(400)
-        .json({ status: false, message: "Please enter User Id" });
+        .json({ status: false, message: "Invalid product ID" });
     }
 
-    const reviewTodelete = await Review.findOne({ userId });
-
-    if (!reviewTodelete) {
-      return res.status(400).json({ message: "The Review Does not Exist" });
+    // Find the review by userId and productId
+    const reviewToDelete = await Review.findOne({ userId, productId });
+    if (!reviewToDelete) {
+      return res
+        .status(404)
+        .json({ status: false, message: "Review does not exist" });
     }
 
-    await Review.deleteOne({ userId });
+    // Delete the specific review
+    await Review.deleteOne({ userId, productId });
+
     return res
       .status(200)
-      .json({ status: true, message: "Review Deleted Successfully" });
+      .json({ status: true, message: "Review deleted successfully" });
   } catch (error) {
-    console.error(error);
+    console.error("Error in deleteReview:", error);
     return res
       .status(500)
       .json({ status: false, message: "Internal Server Error" });
   }
 };
-
 module.exports = {
   addReview,
   deleteReview,

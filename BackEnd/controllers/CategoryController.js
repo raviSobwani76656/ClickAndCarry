@@ -1,16 +1,18 @@
-const {mongoose } = require("mongoose");
+const { mongoose } = require("mongoose");
 const Category = require("../models/Category");
 
 const createCategory = async (req, res) => {
   try {
-    const { categoryName } = req.body;
-    if (!categoryName) {
+    const { categoryName, description } = req.body;
+    if (!categoryName || !description) {
       return res
         .status(400)
         .json({ status: false, message: "Category name is required." });
     }
 
-    const existingCategory = await Category.findOne({ categoryName });
+    const existingCategory = await Category.findOne({
+      categoryName,
+    });
 
     if (existingCategory) {
       return res.status(409).json({
@@ -20,6 +22,7 @@ const createCategory = async (req, res) => {
     }
     const newCategory = new Category({
       categoryName,
+      description,
     });
 
     await newCategory.save();
@@ -61,7 +64,7 @@ const getASingleCategory = async (req, res) => {
     if (!id || !mongoose.Types.ObjectId.isValid(id)) {
       return res
         .status(400)
-        .json({ status: false, message: "Catgory Id Not provided" });
+        .json({ status: false, message: "Catgory Id not provided" });
     }
 
     const singleCatgory = await Category.findById(id);
@@ -73,7 +76,7 @@ const getASingleCategory = async (req, res) => {
     }
     return res.status(200).json({
       status: true,
-      message: "Categorie Fetched SuccessFully",
+      message: "Categorie Fetched successfully",
       category: singleCatgory,
     });
   } catch (error) {

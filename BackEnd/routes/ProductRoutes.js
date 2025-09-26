@@ -1,4 +1,5 @@
 const express = require("express");
+
 const {
   createProduct,
   updateProduct,
@@ -6,13 +7,14 @@ const {
   getAllProducts,
   getSingleProduct,
 } = require("../controllers/ProductControllers");
+const authenticateUser = require("../middleware/auth");
 
 const router = express.Router();
 
-router.post("createProduct", createProduct);
-router.put("updateProduct", updateProduct);
-router.delete("deleteProduct", deleteProduct);
-router.get("getAllProducts", getAllProducts);
-router.get("getSingleProducts", getSingleProduct);
+router.post("createProduct", authenticateUser, createProduct);
+router.put("updateProduct", authenticateUser, updateProduct);
+router.delete("deleteProduct", authenticateUser, deleteProduct);
+router.get("getAllProducts", authenticateUser, getAllProducts);
+router.get("getSingleProducts", authenticateUser, getSingleProduct);
 
 module.exports = router;
