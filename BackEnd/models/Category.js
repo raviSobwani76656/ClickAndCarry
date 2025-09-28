@@ -15,12 +15,14 @@ const categorySchema = new mongoose.Schema(
       required: true,
       lowercase: true,
       unique: true,
+      index: true,
     },
 
     description: {
       type: String,
       required: true,
       maxLength: [500, "Description Cannot exceed 500 character"],
+      trim: true,
     },
 
     isActive: {

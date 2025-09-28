@@ -1,88 +1,68 @@
-const { mongoose } = require("mongoose");
+const mongoose = require("mongoose"); // Correct import
 const Category = require("../models/Category");
+const { sendError, sendSuccess } = require("../utils/response");
 
 exports.createCategory = async (req, res) => {
   try {
     const { categoryName, description } = req.body;
+
     if (!categoryName || !description) {
-      return res
-        .status(400)
-        .json({ status: false, message: "Category name is required." });
+      return sendError(res, 400, "Category name and description are required.");
     }
 
-    const existingCategory = await Category.findOne({
-      categoryName,
-    });
+    const existingCategory = await Category.findOne({ categoryName });
 
     if (existingCategory) {
-      return res.status(409).json({
-        status: false,
-        message: `Category ${categoryName} already exist`,
-      });
+      return sendError(res, 400, "Category already exists");
     }
-    const newCategory = new Category({
-      categoryName,
-      description,
-    });
 
+    const newCategory = new Category({ categoryName, description });
     await newCategory.save();
 
-    return res.status(201).json({
-      status: true,
-      message: "Category Created Succesfully",
-      category: newCategory,
-    });
+    return sendSuccess(res, 201, "New category created successfully");
   } catch (error) {
-    console.log("Error creating category:", error);
-    return res
-      .status(500)
-      .json({ status: false, message: "Internal Server Error" });
+    console.error(error.stack);
+    return sendError(res, 500, "Internal Server Error");
   }
 };
 
 exports.getCategories = async (req, res) => {
   try {
     const allCategories = await Category.find().sort({ createdAt: -1 });
-
-    res.status(200).json({
-      status: true,
-      message: "Categories Fetched Successfully",
-      Categories: allCategories,
-    });
+    return sendSuccess(
+      res,
+      200,
+      "Categories fetched successfully",
+      allCategories
+    );
   } catch (error) {
-    console.log("Error Fetching Categories:", error);
-    return res.status(500).json({
-      status: false,
-      message: "Internal Server Error",
-    });
+    console.error(error.stack);
+    return sendError(res, 500, "Internal Server Error");
   }
 };
 
 exports.getASingleCategory = async (req, res) => {
   try {
     const { id } = req.params;
+
     if (!id || !mongoose.Types.ObjectId.isValid(id)) {
-      return res
-        .status(400)
-        .json({ status: false, message: "Catgory Id not provided" });
+      return sendError(res, 400, "Valid Category ID is required");
     }
 
-    const singleCatgory = await Category.findById(id);
+    const singleCategory = await Category.findById(id);
 
-    if (!singleCatgory) {
-      return res
-        .status(404)
-        .json({ status: false, message: "Required  Category does not exist" });
+    if (!singleCategory) {
+      return sendError(res, 404, "Category does not exist");
     }
-    return res.status(200).json({
-      status: true,
-      message: "Categorie Fetched successfully",
-      category: singleCatgory,
-    });
+
+    return sendSuccess(
+      res,
+      200,
+      "Category fetched successfully",
+      singleCategory
+    );
   } catch (error) {
-    console.log("Error Fetching Category", error);
-    return res
-      .status(500)
-      .json({ status: false, message: "Internal Server Error" });
+    console.error(error.stack);
+    return sendError(res, 500, "Internal Server Error");
   }
 };
