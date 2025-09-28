@@ -4,6 +4,7 @@ const {
   refreshTokenGenerator,
 } = require("../utils/jwtTokenGenerator");
 const crypto = require("crypto");
+const { sendError, sendSuccess } = require("../utils/response");
 
 const createAccount = async function (req, res) {
   try {
@@ -12,9 +13,7 @@ const createAccount = async function (req, res) {
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
-      return res
-        .status(400)
-        .json({ status: false, message: "User with this email already exist" });
+      return sendError(res, 400, "User with same email Already exists");
     }
 
     const newUser = new User({
@@ -27,44 +26,32 @@ const createAccount = async function (req, res) {
     await newUser.save();
 
     if (newUser) {
-      return res.status(200).json({
-        status: true,
-        message: "User Account Created SuccessFully",
-      });
+      return sendSuccess(res, 201, "New user created Successfully");
     }
   } catch (error) {
-    console.log("Error Occured while creating the Uer", error);
-    res.status(500).json({ status: false, message: "Internal Server Error" });
+    console.error(error.stack);
+    return sendError(res, 500, "Interval Server Error");
   }
 };
 
 const login = async (req, res) => {
   try {
-    console.log("req.body", req.body);
-
-    console.log("HEaders", req.headers["content-type"]);
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res
-        .status(400)
-        .json({ status: false, message: "Please enter Valid Credentials" });
+      return sendError(res, 400, "Enter All required Details");
     }
 
     const requiredUser = await User.findOne({ email });
 
     if (!requiredUser) {
-      return res
-        .status(404)
-        .json({ status: false, message: "Email Address Not Registered" });
+      return sendError(res, 404, "Invalid credentials");
     }
 
     const isMatch = await requiredUser.comparePasswords(password);
 
     if (!isMatch) {
-      return res
-        .status(401)
-        .json({ status: false, message: "Password Not Correct" });
+      return sendError(res, 400, "Invalid Credentials");
     }
 
     const accessTokenValue = accessTokenGenerator({
@@ -92,31 +79,50 @@ const login = async (req, res) => {
     res.cookie("refreshToken", refreshTokenValue, {
       httpOnly: true, // The cookie cannot be accessed by JavaScript on the client side (helps prevent XSS attacks)
       secure: process.env.NODE_ENV === "production", // Cookie is sent only over HTTPS when in production
-      samesite: "Strict", // Cookie is only sent in requests originating from the same site (prevents CSRF attacks)
+      sameSite: "Strict", // Cookie is only sent in requests originating from the same site (prevents CSRF attacks)
       maxAge: 7 * 24 * 60 * 60 * 1000, // Cookie expiration time in milliseconds (7 days). Note: should likely be 7 * 24 * 60 * 60 * 1000 for exact 7 days
     });
 
-    res.status(200).json({
-      status: true,
-      message: "Login SuccessFull",
-      accessTokenValue,
-      user: requiredUser,
+    const { _id, name, gender } = requiredUser;
+
+    return sendSuccess(res, 200, "Login successfull", accessTokenValue, {
+      user: { _id, name, email, gender },
     });
   } catch (error) {
-    console.log(error);
-    return res
-      .status(500)
-      .json({ status: false, message: "Internal Server Error" });
+    console.error(error.stack);
+    return sendError(res, 500, "Internal Server Error");
   }
 };
 
 const logout = async function (req, res) {
   try {
+    // Retrieve the refresh token from the cookies sent by the client
+    const refreshToken = req.cookies.refreshToken;
+
+    // Check if a refresh token exists
+    if (refreshToken) {
+      // Hash the refresh token using SHA-256 algorithm for security
+      // This ensures that even if someone gets the database, they won't see the plain token
+      const tokenHash = crypto
+        .createHash("sha256") // create a SHA-256 hash object
+        .update(refreshToken) // input the refresh token into the hash
+        .digest("hex"); // get the hashed value as a hexadecimal string
+
+      // Remove the hashed refresh token from the user's record in the database
+      // This effectively "logs out" the user by invalidating that refresh token
+      await User.updateOne(
+        { _id: req.user.id }, // find the user by their ID (from the auth middleware)
+        { $pull: { refreshTokens: { tokenHash } } } // pull/remove the tokenHash from the refreshTokens array
+      );
+    }
+
+    // Clear the refresh token cookie from the client browser
+    // This ensures the client no longer sends the old refresh token with requests
     res.clearCookie("refreshToken");
-    res.status(200).json({ status: true, message: "Logout SuccessFull" });
+    return sendSuccess(res, 200, "Logout SuccessFull");
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ status: false, message: "Internal Server Error" });
+    console.error(error.stack);
+    return sendError(res, 500, "Interval Server Error");
   }
 };
 
