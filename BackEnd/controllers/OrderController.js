@@ -55,13 +55,18 @@ const cancelOrder = async (req, res) => {
       return sendError(res, 400, "Enter valid id");
     }
 
-    const orderToCancel = await Order.findByIdAndDelete(id);
+    const orderToCancel = await Order.findById(id);
 
-    if (!orderTodelete) {
+    if (!orderToCancel) {
       return sendError(res, 404, "Order not found");
     }
 
+    if (orderToCancel.status === "cancelled") {
+      return sendError(res, 400, "Order already Cancelled");
+    }
+
     orderToCancel.status = "cancelled";
+    orderToCancel.cancelledAt = Date.now();
 
     await orderToCancel.save();
 
