@@ -16,6 +16,8 @@ const ReviewSchema = new mongoose.Schema(
     comment: {
       type: String,
       required: true,
+      minlength: [3, "Comment needs to be at least 3 character long"],
+      maxLength: [500, "Comment cannot exceed more than 500 characters"],
     },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -28,10 +30,13 @@ const ReviewSchema = new mongoose.Schema(
     },
     verifiedPurchase: {
       type: Boolean,
-      required: true,
+      default: false,
     },
   },
   { timestamps: true }
 );
+
+// compound index to Prevent a user from reviewing the same product multiple times
+ReviewSchema.index({ productId: 1, userId: 1 }, { unique: true });
 
 module.exports = mongoose.model("Review", ReviewSchema);

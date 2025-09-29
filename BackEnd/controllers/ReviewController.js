@@ -1,92 +1,85 @@
-const { default: mongoose } = require("mongoose");
+const mongoose = require("mongoose");
 const Review = require("../models/Review");
+const { sendError, sendSuccess } = require("../utils/response");
 
 const addReview = async (req, res) => {
   try {
-    const { productId, ratings, comment, helpfulVotes, verifiedPurchase } =
-      req.body;
-
+    console.log("req.body:", req.body);
+    console.log("req.params:", req.params);
+    console.log("req.user:", req.user);
+    const { ratings, comment, helpfulVotes, verifiedPurchase } = req.body;
     const userId = req.user.id;
+    const productId = req.params.productId;
 
-    if (!productId || !userId || !comment) {
-      return res
-        .status(400)
-        .json({ status: false, message: "Enter Valid Information" });
+    console.log(userId);
+    console.log(productId);
+
+    if (
+      !mongoose.Types.ObjectId.isValid(productId) ||
+      !mongoose.Types.ObjectId.isValid(userId)
+    ) {
+      return sendError(res, 400, "Enter Valid Product Id and User Id");
     }
 
-    const exisitingReview = await Review.findOne({ userId });
-
-    if (exisitingReview) {
-      return res.status(400).json({
-        status: false,
-        message: "User Already Reviewed the product",
-      });
+    if (!comment || comment.length < 3 || comment.length > 500) {
+      return sendError(res, 400, "Enter Valid Comment");
     }
 
-    const addedReview = new Review({
+    if (ratings && (ratings < 1 || ratings > 5)) {
+      return sendSuccess(res, 400, "Invalid ratings");
+    }
+
+    const existingReview = await Review.findOne({ userId, productId });
+
+    if (existingReview) {
+      return sendError(res, 400, "User has already reviewed this product");
+    }
+
+    const newReview = new Review({
       productId,
       userId,
-      ratings,
+      ratings: ratings || 1,
       comment,
       helpfulVotes: helpfulVotes || 0,
       verifiedPurchase: verifiedPurchase || false,
     });
 
-    await addedReview.save();
+    await newReview.save();
 
-    return res
-      .status(201)
-      .json({ status: true, message: "Review Added SuccessFully" });
+    return sendSuccess(res, 201, "Review added successfully", newReview);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ status: false, message: "Interval Server Error" });
+    console.error(error.stack);
+    return sendError(res, 500, "Internal server error");
   }
 };
 
 const deleteReview = async (req, res) => {
   try {
     const userId = req.user.id;
-    const productId = req.params.productId; // Removed .replace(/"/g, "")
+    const { productId } = req.params;
 
-    console.log("Received productId:", productId); // Debug log
-    console.log("UserId:", userId);
-
-    // Check for missing inputs first
     if (!userId || !productId) {
-      return res.status(400).json({
-        status: false,
-        message: "Please provide valid user and product IDs",
-      });
+      return sendError(res, 400, "Please provide valid user and product IDs");
     }
 
-    // Validate productId as a valid ObjectId
     if (!mongoose.Types.ObjectId.isValid(productId)) {
-      return res
-        .status(400)
-        .json({ status: false, message: "Invalid product ID" });
+      return sendError(res, 400, "Invalid product ID");
     }
 
-    // Find the review by userId and productId
-    const reviewToDelete = await Review.findOne({ userId, productId });
-    if (!reviewToDelete) {
-      return res
-        .status(404)
-        .json({ status: false, message: "Review does not exist" });
+    const review = await Review.findOne({ userId, productId });
+    if (!review) {
+      return sendError(res, 404, "Review does not exist");
     }
 
-    // Delete the specific review
     await Review.deleteOne({ userId, productId });
 
-    return res
-      .status(200)
-      .json({ status: true, message: "Review deleted successfully" });
+    return sendSuccess(res, 200, "Review deleted successfully");
   } catch (error) {
-    console.error("Error in deleteReview:", error);
-    return res
-      .status(500)
-      .json({ status: false, message: "Internal Server Error" });
+    console.error(error.stack);
+    return sendError(res, 500, "Internal server error");
   }
 };
+
 module.exports = {
   addReview,
   deleteReview,
