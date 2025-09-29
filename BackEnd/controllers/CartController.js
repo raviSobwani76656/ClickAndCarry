@@ -1,107 +1,91 @@
 const Cart = require("../models/Cart");
+const { sendError, sendSuccess } = require("../utils/response");
 
 const addItems = async (req, res) => {
   try {
     const { cartItems, totalAmount } = req.body;
     const userId = req.user.id;
-    console.log("userId", userId);
-    console.log("cartItems", cartItems);
-    console.log("totalamoutn:", totalAmount);
 
-    if (!userId || !cartItems || !totalAmount) {
-      return res
-        .status(400)
-        .json({ status: false, message: "Enter valid details" });
+    if (
+      !userId ||
+      !Array.isArray(cartItems) ||
+      cartItems.length === 0 ||
+      !totalAmount
+    ) {
+      return sendError(res, 400, "Enter Valid information");
     }
 
-    const userCard = await Cart.findOne({ userId });
+    const cart = await Cart.findOneAndUpdate(
+      { userId },
+      { cartItems, totalAmount },
+      {
+        new: true, // Return the updated cart instead of the old one And
+        upsert: true, // Create a new document if none exists that matches the filter
+        runValidators: true, //Enforces schema validation on the update
+      }
+    );
 
-    if (userCard) {
-      userCard.cartItems = cartItems;
-      userCard.totalAmount = totalAmount;
-      await userCard.save();
-    } else {
-      const addedItems = new Cart({
-        userId,
-        cartItems,
-        totalAmount,
-      });
-
-      await addedItems.save();
-    }
-
-    res
-      .status(201)
-      .json({ status: true, message: "Cart Created Successfully" });
+    return sendSuccess(res, 201, "Cart Created successfully");
   } catch (error) {
-    console.log("Error Occrured", error);
-    res.status(500).json({ status: false, message: "Internal Server Error" });
+    console.error("Error in addOrUpdateCart:", error);
+    return sendError(res, 500, "Internal server error");
   }
 };
 
 const updateCart = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.id;
 
     const { cartItems, totalAmount } = req.body;
 
-    if (!userId || !cartItems || !totalAmount) {
-      return res
-        .status(400)
-        .json({ status: false, message: "Enter Valid Details" });
+    if (
+      !userId ||
+      !Array.isArray(cartItems) ||
+      cartItems.length === 0 ||
+      totalAmount <= 0
+    ) {
+      return sendError(res, 400, "Enter Valid Information");
     }
 
     const requiredCart = await Cart.findOne({ userId });
 
     if (!requiredCart) {
-      return res
-        .status(400)
-        .json({ status: false, message: "Required Cart Does not Exist" });
+      return sendError(res, 404, "Cart not found");
     }
     requiredCart.cartItems = cartItems;
     requiredCart.totalAmount = totalAmount;
 
-    await Cart.find;
     await requiredCart.save();
 
-    return res
-      .status(200)
-      .json({ status: true, message: "Cart Updated SuccessFully" });
+    return sendSuccess(res, 200, "cart updated successfully");
   } catch (error) {
-    console.log("Error Occured While Updating Cart:", error);
-    return res
-      .status(500)
-      .json({ status: false, message: "Internal Server Error" });
+    console.log(error.stack);
+    return sendError(res, 500, "Internal server error");
   }
 };
 
 const emptyCart = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.id;
 
     if (!userId) {
-      return res
-        .status(400)
-        .json({ status: false, message: "Enter The valid UserId" });
+      return sendError(res, 400, "Enter Valid Id");
     }
 
-    const userCart = await Cart.findOne({ userId });
+    const cart = await Cart.findOneAndUpdate(
+      { userId },
+      { cartItems: [], totalAmount: 0 },
+      { new: true }
+    );
 
-    if (!userCart) {
-      return res
-        .status(404)
-        .json({ message: "Required Usercart does not Exist" });
+    if (!cart) {
+      return sendError(res, 404, "Card does not exists");
     }
 
-    const cartTodelete = await Cart.deleteOne({ userId });
-    return res
-      .status(200)
-      .json({ status: true, message: "Cart Removed SuccessFully" });
+    return sendSuccess(res, 200, "Cart emptied successfully", cart);
   } catch (error) {
-    console.log("Error Occured While deleting Cart:", error);
-    return res
-      .status(500)
-      .json({ status: false, message: "Internal Server Error" });
+    console.log(error.stack);
+    return sendError(res, 500, "Internal server error");
   }
 };
 
