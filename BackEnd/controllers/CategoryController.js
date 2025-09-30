@@ -77,8 +77,15 @@ exports.updateCategory = async (req, res) => {
     const { categoryName, description } = req.body;
     const { id } = req.params;
 
+    console.log(id);
+    console.log(categoryName, description);
+
     if (!categoryName || !description) {
       return sendError(res, 400, "Enter Valid Information");
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return sendError(res, 400, "Invalid Id");
     }
 
     const categoryToUpdate = await Category.findById(id);
@@ -95,5 +102,25 @@ exports.updateCategory = async (req, res) => {
   } catch (error) {
     console.error(error.stack);
     return sendError(res, 500, "Internal server error");
+  }
+};
+
+exports.deleteCategory = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      return sendError(res, 400, "Enter Valid Id");
+    }
+
+    const categoryToDelete = await Category.findByIdAndDelete(id);
+
+    if (!categoryToDelete) {
+      return sendError(res, 404, "Category does not exist");
+    }
+    return sendSuccess(res, 200, "Category deleted successfully");
+  } catch (error) {
+    console.error(error);
+    return sendError(res, 500, "Internal Server Error");
   }
 };
