@@ -40,7 +40,52 @@ const createOrder = async (req, res) => {
     });
 
     await newOrder.save();
-    return sendSuccess(res, 201, "Ordered Created Successfully");
+    return sendSuccess(res, 201, "Ordered Created Successfully", newOrder);
+  } catch (error) {
+    console.error(error.stack);
+    return sendError(res, 500, "Internal Server Error");
+  }
+};
+
+const getAllOrders = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return sendError(res, 400, "Enter valid Userid");
+    }
+
+    const orders = await Order.find({ userId });
+
+    if (!Array.isArray(orders) || orders.length === 0) {
+      return sendError(res, 404, "Orders not found");
+    }
+
+    return sendSuccess(res, 200, "Orders fetched successfully", orders);
+  } catch (error) {
+    console.error(error.stack);
+    return sendError(res, 500, "Internal server Error");
+  }
+};
+
+const getSingleOrder = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      return sendError(res, 400, "Enter Valid Id");
+    }
+
+    const singleOrder = await Order.findById(id).populate(
+      "orderItems.productId",
+      "productItems price"
+    );
+
+    if (!singleOrder) {
+      return sendError(res, 404, "Order not found");
+    }
+
+    return sendSuccess(res, 200, "Order fetched Successfully", singleOrder);
   } catch (error) {
     console.error(error.stack);
     return sendError(res, 500, "Internal Server Error");
@@ -77,4 +122,4 @@ const cancelOrder = async (req, res) => {
   }
 };
 
-module.exports = { createOrder, cancelOrder };
+module.exports = { createOrder, cancelOrder, getAllOrders, getSingleOrder };

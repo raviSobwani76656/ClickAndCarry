@@ -33,7 +33,7 @@ const categorySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-categorySchema.pre("validate", async function (next) {
+categorySchema.pre("validate", function (next) {
   try {
     if (this.isModified("categoryName")) {
       this.slug = this.categoryName

@@ -8,8 +8,8 @@ const {
   updateCart,
 } = require("../controllers/CartController");
 
-router.post("/addItems", authenticateUser, addItems);
-router.delete("/emptyCart", authenticateUser, emptyCart);
-router.put("/updateCart", authenticateUser, updateCart);
+router.post("/", authenticateUser, addItems);
+router.delete("/", authenticateUser, emptyCart);
+router.put("/", authenticateUser, updateCart);
 
 module.exports = router;

@@ -126,4 +126,42 @@ const logout = async function (req, res) {
   }
 };
 
-module.exports = { createAccount, login, logout };
+const refreshToken = async (req, res) => {
+  try {
+    const token =
+      req.cookies.refreshToken ||
+      req.body.refreshToken ||
+      req.headers["x-refresh-token"];
+
+    if (!token) {
+      return sendError(res, 400, "Enter Valid refreshToken");
+    }
+
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+
+    const user = await User.findOne({
+      "refreshTokens.tokenHash": tokenHash,
+    });
+
+    if (!user) {
+      return sendError(res, 404, "User not found");
+    }
+
+    const accessToken = accessTokenGenerator({
+      id: user._id,
+      email: user.email,
+    });
+
+    return sendSuccess(
+      res,
+      200,
+      "Access token generated succesfully",
+      accessToken
+    );
+  } catch (error) {
+    console.error(error.stack);
+    return sendError(res, 500, "Internal Server Error");
+  }
+};
+
+module.exports = { createAccount, login, logout, refreshToken };
