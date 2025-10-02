@@ -24,6 +24,7 @@ const categoryRoutes = require("./routes/CategoryRoutes");
 const orderRoutes = require("./routes/OrderRoutes");
 const cartRoutes = require("./routes/CartRoutes");
 const reviewRoutes = require("./routes/ReviewRoutes");
+const discountRoutes = require("./routes/DiscountRoutes");
 
 app.use("/users", userRoutes);
 app.use("/products", productRoutes);
@@ -31,6 +32,7 @@ app.use("/categorys", categoryRoutes);
 app.use("/orders", orderRoutes);
 app.use("/carts", cartRoutes);
 app.use("/reviews", reviewRoutes);
+app.use("/discounts", discountRoutes);
 
 // Test endpoint
 app.get("/", (req, res) => {
