@@ -186,4 +186,28 @@ const deleteDiscount = async (req, res) => {
   }
 };
 
-module.exports = { createDiscount, updateDiscount };
+const getAllDiscounts = async (req, res) => {
+  try {
+    const allDiscounts = await Discount.find()
+      .populate("product")
+      .populate("productCategory", "categoryName")
+      .sort({ createdAt: -1 });
+
+    return sendSuccess(
+      res,
+      200,
+      "Discounts fetched successfully",
+      allDiscounts
+    );
+  } catch (error) {
+    console.error(error.stack);
+    return sendError(res, 500, "Internal server error");
+  }
+};
+
+module.exports = {
+  createDiscount,
+  updateDiscount,
+  deleteDiscount,
+  getAllDiscounts,
+};
