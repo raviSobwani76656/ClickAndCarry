@@ -61,10 +61,6 @@ const orderSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const Order = mongoose.model("Order", orderSchema);
-
-module.exports = Order;
-
 // Virtuals in Mongoose are fields that are **not stored in MongoDB** but are computed dynamically
 // They are useful when you want a value derived from existing data without saving it in the database.
 
@@ -79,3 +75,7 @@ orderSchema.virtual("calculatedTotal").get(function () {
     0
   );
 });
+
+const Order = mongoose.model("Order", orderSchema);
+
+module.exports = Order;

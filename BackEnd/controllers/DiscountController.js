@@ -76,4 +76,114 @@ const createDiscount = async (req, res) => {
   }
 };
 
-module.exports = { createDiscount };
+const updateDiscount = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      code,
+      description,
+      productCategory,
+      product,
+      discountType,
+      perUserLimit,
+      minPurchaseAmount,
+      maxPurchaseAmount,
+      validFrom,
+      isActive,
+      validTill,
+    } = req.body;
+
+    if (
+      !code ||
+      !description ||
+      !productCategory ||
+      !discountType ||
+      !product ||
+      typeof perUserLimit !== "number" ||
+      typeof minPurchaseAmount !== "number" ||
+      typeof maxPurchaseAmount !== "number" ||
+      typeof isActive !== "boolean" ||
+      !validFrom ||
+      !validTill
+    ) {
+      return sendError(res, 400, "Invalid Data");
+    }
+
+    const validFromDate = new Date(validFrom);
+    const validTillDate = new Date(validTill);
+
+    const categoryExists = await Category.findById(productCategory);
+    if (!categoryExists) return sendError(res, 404, "Category not found");
+
+    const productExists = await Product.findById(product);
+    if (!productExists) return sendError(res, 404, "Product not found");
+
+    if (isNaN(validFromDate.getTime())) {
+      return sendError(res, 400, "Invalid valid from Date");
+    }
+
+    if (isNaN(validTillDate.getTime())) {
+      return sendError(res, 400, "Invalid valid till Date");
+    }
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      return sendError(res, 400, "Invalid mongoose Id");
+    }
+
+    const discountToUpdate = await Discount.findOneAndUpdate(
+      { _id: id },
+
+      {
+        $set: {
+          code: code,
+          description: description,
+          productCategory: productCategory,
+          product: product,
+          discountType: discountType,
+          perUserLimit: perUserLimit,
+          minPurchaseAmount: minPurchaseAmount,
+          maxPurchaseAmount: maxPurchaseAmount,
+          validFrom: validFromDate,
+          isActive: isActive,
+          validTill: validTillDate,
+        },
+      },
+      { runValidators: true, new: true }
+    );
+
+    if (!discountToUpdate) {
+      return sendError(res, 404, "Discount not found");
+    }
+
+    return sendSuccess(
+      res,
+      200,
+      "Discount updated successfully",
+      discountToUpdate
+    );
+  } catch (error) {
+    console.log(error.stack);
+    return sendError(res, 500, "Internal server error");
+  }
+};
+
+const deleteDiscount = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      return sendError(res, 400, "Invalid discount id");
+    }
+
+    const discount = await Discount.findByIdAndDelete(id);
+
+    if (!discount) {
+      return sendError(res, 404, "Discount not found");
+    }
+    return sendSuccess(res, 200, "Discount deleted Succcessfully");
+  } catch (error) {
+    console.log(error.stack);
+    return sendError(res, 500, "Internal server error");
+  }
+};
+
+module.exports = { createDiscount, updateDiscount };

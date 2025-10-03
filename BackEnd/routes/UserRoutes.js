@@ -9,14 +9,6 @@ const {
   refreshToken,
 } = require("../controllers/UserController");
 
-router.use((req, res, next) => {
-  console.log("📨 INCOMING REQUEST:");
-  console.log("Method:", req.method);
-  console.log("URL:", req.url);
-  console.log("Path:", req.path);
-  console.log("Original URL:", req.originalUrl);
-  next();
-});
 
 router.post("/", createAccount);
 
