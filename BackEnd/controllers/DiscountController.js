@@ -205,9 +205,31 @@ const getAllDiscounts = async (req, res) => {
   }
 };
 
+const getSingleDiscount = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id || !mongoose.Types.ObjectId.isValid) {
+      return sendError(res, 400, "Invalid Discount Id");
+    }
+
+    const discount = await Discount.findById(id)
+      .populate("product", "name")
+      .populate("productCategory");
+
+    if (!discount) return sendError(res, 404, "Discount Not found");
+
+    return sendSuccess(res, 200, "Discount fetched successfully", discount);
+  } catch (error) {
+    console.error(error.stack);
+    return sendError(res, 500, "Internal server error");
+  }
+};
+
 module.exports = {
   createDiscount,
   updateDiscount,
   deleteDiscount,
   getAllDiscounts,
+  getSingleDiscount,
 };
