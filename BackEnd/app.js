@@ -34,6 +34,8 @@ app.use("/carts", cartRoutes);
 app.use("/reviews", reviewRoutes);
 app.use("/discounts", discountRoutes);
 
+console.log("discountRoutes", discountRoutes);
+
 // Test endpoint
 app.get("/", (req, res) => {
   res.send("Hello There");

@@ -8,21 +8,20 @@ const DiscountSchema = new mongoose.Schema(
       unique: true,
       uppercase: true,
     },
-
     user: [
       {
         userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-        usedCount: {
-          type: Number,
-          default: 0,
-        },
+        usedCount: { type: Number, default: 0 },
       },
     ],
     description: {
       type: String,
     },
-
-    ProductCategory: {
+    product: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Product",
+    },
+    productCategory: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
       required: true,
@@ -38,7 +37,7 @@ const DiscountSchema = new mongoose.Schema(
     },
     discountValue: {
       type: Number,
-      required: true,
+      default: 0,
     },
     minPurchaseAmount: {
       type: Number,
@@ -64,24 +63,27 @@ const DiscountSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// ✅ Pre-save hook with populated category
+// Pre-save hook: calculate discountValue
 DiscountSchema.pre("save", async function (next) {
   try {
-    // populate the ProductCategory field
-    await this.populate("ProductCategory");
+    await this.populate("productCategory");
+    const categoryName = this.productCategory.categoryName.toLowerCase();
 
-    const categoryName = this.ProductCategory.name; // assuming Category schema has a "name" field
-
-    if (categoryName === "Utensils") {
-      this.discountValue = 45;
-    } else if (categoryName === "Shoes") {
-      this.discountValue = 22;
-    } else if (categoryName === "Shirts") {
-      this.discountValue = 15;
-    } else if (categoryName === "Pants") {
-      this.discountValue = 35;
-    } else {
-      this.discountValue = 10;
+    switch (categoryName) {
+      case "utensils":
+        this.discountValue = 45;
+        break;
+      case "shoes":
+        this.discountValue = 22;
+        break;
+      case "shirts":
+        this.discountValue = 15;
+        break;
+      case "pants":
+        this.discountValue = 35;
+        break;
+      default:
+        this.discountValue = 10;
     }
 
     next();

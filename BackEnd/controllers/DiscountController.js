@@ -1,14 +1,17 @@
 const Discount = require("../models/Discount");
 const mongoose = require("mongoose");
 const { sendError, sendSuccess } = require("../utils/response");
+const Category = require("../models/Category");
+const Product = require("../models/Product");
 
 const createDiscount = async (req, res) => {
   try {
     const {
       code,
       description,
-      ProductCategory,
+      productCategory,
       discountType,
+      product,
       perUserLimit,
       minPurchaseAmount,
       maxPurchaseAmount,
@@ -17,10 +20,12 @@ const createDiscount = async (req, res) => {
       validTill,
     } = req.body;
 
+    // Validate inputs
     if (
       !code ||
       !description ||
-      !ProductCategory ||
+      !productCategory ||
+      !product ||
       !discountType ||
       typeof perUserLimit !== "number" ||
       typeof minPurchaseAmount !== "number" ||
@@ -32,36 +37,42 @@ const createDiscount = async (req, res) => {
       return sendError(res, 400, "Invalid Data");
     }
 
-    const validFromDate = new Date(validFrom);
-    const validTillDate = new Date(validTill);
-
-    if (isNaN(validFromDate.getTime())) {
-      return sendError(res, 400, "Invalid valid from date");
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(productCategory)) {
+      return sendError(res, 400, "Invalid Category ID");
     }
 
-    if (isNaN(validTillDate.getTime())) {
-      return sendError(res, 400, "Invalid valid till date");
-    }
+    console.log("Product Category ID from body:", productCategory);
+    console.log(
+      "Is valid ObjectId?",
+      mongoose.Types.ObjectId.isValid(productCategory)
+    );
 
-    const newDiscount = new Discount({
+    const categoryExists = await Category.findById(productCategory);
+    if (!categoryExists) return sendError(res, 404, "Category not found");
+
+    const productExists = await Product.findById(product);
+    if (!productExists) return sendError(res, 404, "Products not Exists");
+
+    const discount = new Discount({
       code,
       description,
-      ProductCategory,
+      productCategory,
       discountType,
       perUserLimit,
       minPurchaseAmount,
       maxPurchaseAmount,
-      validFrom: validFromDate,
+      validFrom: new Date(validFrom),
+      validTill: new Date(validTill),
       isActive,
-      validTill: validTillDate,
     });
 
-    await newDiscount.save();
+    await discount.save();
 
-    return sendSuccess(res, 201, "New discount created");
-  } catch (error) {
-    console.error(error.stack);
-    return sendError(res, 500, "Internal Server Error");
+    return sendSuccess(res, 201, "Discount created successfully", discount);
+  } catch (err) {
+    console.error(err);
+    return sendError(res, 500, "Internal server error");
   }
 };
 
