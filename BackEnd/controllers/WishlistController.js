@@ -33,9 +33,39 @@ const addToWishlist = async (req, res) => {
 
     return sendSuccess(res, 201, "New Wishlist Created", newWishlist);
   } catch (error) {
-    console.error("Error in addToWishlist:", error);
+    console.error(error.stack);
     return sendError(res, 500, "Internal Server Error");
   }
 };
 
-module.exports = { addToWishlist };
+const addItems = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const { product } = req.body;
+
+    if (!product || !Array.isArray(product) || product.length === 0) {
+      return sendError(res, 400, "Invalid product details");
+    }
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      return sendError(res, 400, "Invalid Wishlist Id");
+    }
+
+    const wishlist = await Wishlist.findById(id);
+
+    if (!wishlist) {
+      return sendError(res, 404, "Wishlist not found");
+    }
+
+    wishlist.product.push(...product);
+
+    await wishlist.save();
+
+    return sendSuccess(res, 200, "Product added to a wishlist succesfully");
+  } catch (error) {
+    console.error(error.stack);
+    return sendError(res, 500, "Internal Server Error");
+  }
+};
+
+module.exports = { addToWishlist, addItems };
