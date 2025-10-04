@@ -119,4 +119,34 @@ const getWishlist = async (req, res) => {
   }
 };
 
-module.exports = { createWishlist, addItems, removeItems, getWishlist };
+const getAllWishlists = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { page = 1, limit = 10 } = req.query;
+
+    const wishlists = await Wishlist.find({ user: userId })
+      .populate("product")
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit));
+
+    const total = await Wishlist.countDocuments({ user: userId });
+
+    return sendSuccess(res, 200, "All wishlists fetched successfully", {
+      total,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      data: wishlists,
+    });
+  } catch (error) {
+    console.error(error.stack);
+    return sendError(res, 500, "Internal Server Error");
+  }
+};
+
+module.exports = {
+  createWishlist,
+  addItems,
+  removeItems,
+  getWishlist,
+  getAllWishlists,
+};
