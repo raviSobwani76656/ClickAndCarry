@@ -1,6 +1,6 @@
 const express = require("express");
 const {
-  addToWishlist,
+  createWishlist,
   addItems,
   getWishlist,
   removeItems,
@@ -8,7 +8,7 @@ const {
 const authenticateUser = require("../middleware/auth");
 const router = express.Router();
 
-router.post("/", authenticateUser, addToWishlist);
+router.post("/", authenticateUser, createWishlist);
 router.post("/:id/add-items", authenticateUser, addItems);
 router.get("/:id", authenticateUser, getWishlist);
 router.post("/:id/remove-items", authenticateUser, removeItems);
