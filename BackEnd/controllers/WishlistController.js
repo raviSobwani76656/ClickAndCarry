@@ -68,4 +68,56 @@ const addItems = async (req, res) => {
   }
 };
 
-module.exports = { addToWishlist, addItems };
+// const removeItems = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const { product } = req.body;
+
+//     if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+//       return sendError(res, 400, "Invalid Id");
+//     }
+
+//     if (!product || !Array.isArray(product) || product.length === 0) {
+//       return sendError(res, 400, "Invalid product details");
+//     }
+
+//     const wishlist = await Wishlist.findById(id);
+
+//     if (!wishlist) {
+//       return sendError(res, 404, "Wishlist not found");
+//     }
+
+//     console.log(wishlist);
+
+//     wishlist.product = wishlist.product.filter((item) => {
+//       return !product.some((p) => p.name === item.name);
+//     });
+
+//     await wishlist.save();
+//   } catch (error) {
+//     console.error(error.stack);
+//     return sendError(res, 500, "Internal Server Error");
+//   }
+// };
+
+const getWishlist = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      return sendError(res, 400, "Invalid Wishlist Id");
+    }
+
+    const wishlist = await Wishlist.findById(id).populate("product");
+    if (!wishlist) {
+      return sendError(res, 404, "Wishlist not found");
+    }
+
+    return sendSuccess(res, 200, "Wishlist fetched successfully", wishlist);
+  } catch (error) {
+    console.error(error.stack);
+    return sendError(res, 500, "Internal Server Error");
+  }
+};
+
+module.exports = { addToWishlist, addItems, getWishlist };
