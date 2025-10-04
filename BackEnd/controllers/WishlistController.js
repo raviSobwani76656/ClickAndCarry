@@ -68,37 +68,37 @@ const addItems = async (req, res) => {
   }
 };
 
-// const removeItems = async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     const { product } = req.body;
+const removeItems = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { product } = req.body;
 
-//     if (!id || !mongoose.Types.ObjectId.isValid(id)) {
-//       return sendError(res, 400, "Invalid Id");
-//     }
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      return sendError(res, 400, "Invalid Id");
+    }
 
-//     if (!product || !Array.isArray(product) || product.length === 0) {
-//       return sendError(res, 400, "Invalid product details");
-//     }
+    if (!product || !Array.isArray(product) || product.length === 0) {
+      return sendError(res, 400, "Invalid product details");
+    }
 
-//     const wishlist = await Wishlist.findById(id);
+    const wishlist = await Wishlist.findById(id);
 
-//     if (!wishlist) {
-//       return sendError(res, 404, "Wishlist not found");
-//     }
+    if (!wishlist) {
+      return sendError(res, 404, "Wishlist not found");
+    }
 
-//     console.log(wishlist);
+    console.log(wishlist);
 
-//     wishlist.product = wishlist.product.filter((item) => {
-//       return !product.some((p) => p.name === item.name);
-//     });
+    wishlist.product = wishlist.product.filter(
+      (item) => !product.includes(item.toString())
+    );
 
-//     await wishlist.save();
-//   } catch (error) {
-//     console.error(error.stack);
-//     return sendError(res, 500, "Internal Server Error");
-//   }
-// };
+    await wishlist.save();
+  } catch (error) {
+    console.error(error.stack);
+    return sendError(res, 500, "Internal Server Error");
+  }
+};
 
 const getWishlist = async (req, res) => {
   try {
@@ -120,4 +120,4 @@ const getWishlist = async (req, res) => {
   }
 };
 
-module.exports = { addToWishlist, addItems, getWishlist };
+module.exports = { addToWishlist, addItems, getWishlist, removeItems };
