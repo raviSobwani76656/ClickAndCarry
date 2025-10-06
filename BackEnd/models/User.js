@@ -25,7 +25,7 @@ userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
 
   try {
-    const saltRounds = process.env.BCRYPT_ROUND; // Number of salt rounds from env
+    const saltRounds = parseInt(process.env.BCRYPT_ROUND); // Number of salt rounds from env
     this.password = await bcrypt.hash(this.password, saltRounds); // Hash password
     next(); // Continue saving the user
   } catch (error) {

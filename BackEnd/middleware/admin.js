@@ -1,7 +1,7 @@
 const User = require("../models/User");
 const { sendError } = require("../utils/response");
 
-const authenticateAdmin = async (req, res, next) => {
+const adminProtect = async (req, res, next) => {
   try {
     // Check if req.user exists and has an id
     // This comes from the authenticateUser middleware, which verifies JWT/refresh token
@@ -18,10 +18,12 @@ const authenticateAdmin = async (req, res, next) => {
     if (requiredUser.role !== "admin") {
       return sendError(res, 403, "Admin acess required");
     }
+
+    next();
   } catch (error) {
     console.error(error);
     return sendError(res, 500, "Internal Server Error");
   }
 };
 
-module.exports = { authenticateAdmin };
+module.exports = { adminProtect };
