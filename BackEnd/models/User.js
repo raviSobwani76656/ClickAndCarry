@@ -1,17 +1,17 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
-const crypto = require("crypto"); // Node.js built-in module for cryptographic operations
-const { refreshToken } = require("../utils/jwtTokenGenerator"); // Custom JWT token generator utility
-require("dotenv").config(); // Load environment variables from .env file
+const crypto = require("crypto");
+const { refreshToken } = require("../utils/jwtTokenGenerator");
+require("dotenv").config();
 
 // Define User schema for MongoDB
 const userSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true }, // User's full name
-    email: { type: String, required: true, unique: true }, // User's email (must be unique)
-    password: { type: String, required: true }, // User's password (hashed before save)
-
-    gender: { type: String, enum: ["Male", "Female", "Other"], required: true }, // User's gender
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    role: { type: String, enum: ["user", "admin"], default: "user" },
+    gender: { type: String, enum: ["Male", "Female", "Other"], required: true },
     age: Number, // Optional user age
     refreshTokens: [{ tokenHash: String, expiresAt: Number, meta: Object }],
   },
