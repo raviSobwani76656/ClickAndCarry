@@ -1,5 +1,7 @@
 const express = require("express");
 const router = express.Router();
+const authenticateUser = require("../middleware/auth");
+const { adminProtect } = require("../middleware/admin");
 const {
   createDiscount,
   updateDiscount,
@@ -7,11 +9,13 @@ const {
   getAllDiscounts,
   getSingleDiscount,
 } = require("../controllers/DiscountController");
-const authenticateUser = require("../middleware/auth");
 
-router.post("/", authenticateUser, createDiscount);
-router.put("/:id", authenticateUser, updateDiscount);
-router.delete("/:id", authenticateUser, deleteDiscount);
+//Admin Routes
+router.post("/", authenticateUser, adminProtect, createDiscount);
+router.put("/:id", authenticateUser, adminProtect, updateDiscount);
+router.delete("/:id", authenticateUser, adminProtect, deleteDiscount);
+
+//User Routes
 router.get("/", authenticateUser, getAllDiscounts);
 router.get("/:id", authenticateUser, getSingleDiscount);
 

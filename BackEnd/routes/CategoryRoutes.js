@@ -1,5 +1,7 @@
 const express = require("express");
-
+const authenticateUser = require("../middleware/auth");
+const { adminProtect } = require("../middleware/admin");
+const router = express.Router();
 const {
   getASingleCategory,
   getCategories,
@@ -7,13 +9,14 @@ const {
   deleteCategory,
   updateCategory,
 } = require("../controllers/CategoryController");
-const authenticateUser = require("../middleware/auth");
-const router = express.Router();
 
+//Admin Routes
+router.post("/", authenticateUser, adminProtect, createCategory);
+router.delete("/:id", authenticateUser, adminProtect, deleteCategory);
+router.put("/:id", authenticateUser, adminProtect, updateCategory);
+
+//User Routes
 router.get("/:id", authenticateUser, getASingleCategory);
 router.get("/", authenticateUser, getCategories);
-router.post("/", authenticateUser, createCategory);
-router.delete("/:id", authenticateUser, deleteCategory);
-router.put("/:id", authenticateUser, updateCategory);
 
 module.exports = router;

@@ -8,12 +8,16 @@ const {
   getSingleProduct,
 } = require("../controllers/ProductControllers");
 const authenticateUser = require("../middleware/auth");
+const { adminProtect } = require("../middleware/admin");
 
 const router = express.Router();
 
-router.post("/", authenticateUser, createProduct);
-router.put("/:id", authenticateUser, updateProduct);
-router.delete("/:id", authenticateUser, deleteProduct);
+//Admin Routes
+router.post("/", authenticateUser, adminProtect, createProduct);
+router.put("/:id", authenticateUser, adminProtect, updateProduct);
+router.delete("/:id", authenticateUser, adminProtect, deleteProduct);
+
+//User Routes
 router.get("/", authenticateUser, getAllProducts);
 router.get("/:id", authenticateUser, getSingleProduct);
 
