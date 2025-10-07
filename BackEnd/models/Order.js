@@ -50,11 +50,13 @@ const orderSchema = new mongoose.Schema(
       enum: ["cash", "debit_card", "credit_card", "upi", "internet_banking"],
       required: true,
     },
+
     paymentStatus: {
       type: String,
       enum: ["pending", "paid", "failed"],
       default: "pending",
     },
+    StripePaymentIntentID: String,
     cancelledAt: { type: Date },
   },
 
