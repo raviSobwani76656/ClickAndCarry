@@ -42,4 +42,15 @@ class paymentService {
       throw new Error(`Erro Occured while creating payment ${error.message}`);
     }
   }
+  async retrievePaymentIntent(paymentIntentId) {
+    try {
+      return await stripe.paymentIntents.retrieve(paymentIntentId);
+    } catch (error) {
+      throw new Error(
+        `Error occured while retrieving the payment Intent ${error.message}`
+      );
+    }
+  }
 }
+
+module.exports = paymentService;
