@@ -1,4 +1,5 @@
 const stripe = require("../config/Stripe");
+const { findOneAndUpdate } = require("../models/Discount");
 const Order = require("../models/Order");
 const Payment = require("../models/Payment");
 
@@ -48,6 +49,41 @@ class paymentService {
     } catch (error) {
       throw new Error(
         `Error occured while retrieving the payment Intent ${error.message}`
+      );
+    }
+  }
+
+  async handleSuccessfullPayment(paymentIntentId) {
+    try {
+      const order = await Order.findOne({
+        StripePaymentIntentID: paymentIntentId,
+      });
+
+      if (!order) {
+        throw new Error("Order not found");
+      }
+
+      if (order.paymentStatus === "paid") {
+        throw new Error("Order is already Paids");
+      }
+
+      order.paymentStatus = "paid";
+      order.status = "pending";
+      await order.save();
+
+      await Payment.findOneAndUpdate(
+        { StripePaymentIntentID: paymentIntentId },
+        {
+          $set: {
+            paymentStatus: "paid",
+          },
+        }
+      );
+
+      return order;
+    } catch (error) {
+      throw new Error(
+        `Error Occured while handling success Payment${error.message}`
       );
     }
   }
