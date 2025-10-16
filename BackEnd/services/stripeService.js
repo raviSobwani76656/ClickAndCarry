@@ -76,6 +76,7 @@ class paymentService {
         {
           $set: {
             paymentStatus: "paid",
+            receiptURL: await this.getReceiptURl(paymentIntentId),
           },
         }
       );
@@ -84,6 +85,23 @@ class paymentService {
     } catch (error) {
       throw new Error(
         `Error Occured while handling success Payment${error.message}`
+      );
+    }
+  }
+
+  async getReceiptURl(paymentIntentId) {
+    try {
+      const paymentIntent = await stripe.paymentIntents.retrieve(
+        paymentIntentId
+      );
+
+      if (paymentIntent.charges.data.length > 0) {
+        return paymentIntent.charges.data[0].receipt_url;
+      }
+      return null;
+    } catch (error) {
+      throw new Error(
+        `Error Occured while retrieving the receipt ${error.message}`
       );
     }
   }
