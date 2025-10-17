@@ -41,7 +41,7 @@ const getPaymentIntent = async (req, res) => {
       res,
       200,
       "Payment Intent retrieved Successfully",
-      paymentIntentID
+      paymentIntent
     );
   } catch (error) {
     console.error(error);
