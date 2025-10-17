@@ -6,7 +6,11 @@ const Payment = require("../models/Payment");
 class paymentService {
   async createPayment(orderId, userId) {
     try {
-      const order = await Order.findById(orderId).populate("items.product");
+      console.log("Fetching order");
+
+      const order = await Order.findById(orderId).populate("orderItems");
+
+      console.log(order);
 
       if (!order) {
         throw new Error("Order not found");
@@ -16,6 +20,8 @@ class paymentService {
         throw new Error("Order payment is already paid");
       }
 
+      console.log("creating the paymentINtent");
+
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(order.totalAmount * 100),
         currency: order.currency.toLowerCase(),
@@ -24,16 +30,23 @@ class paymentService {
         description: `Order ${order._id}`,
       });
 
+      console.log(paymentIntent);
+
       order.stripePaymentIntent = paymentIntent.id;
       await order.save();
 
+      console.log("Updating payment Schema");
+
       await Payment.create({
         order: order._id,
-        stripePaymentIntentId: paymentIntent.id,
-        amount: order.totalAmount,
+        stripePaymentIntent: paymentIntent.id,
+        paymentAmount: order.totalAmount,
+        paymentMethod: order.paymentMethod || "credit_card",
         currency: order.currency,
         status: "pending",
       });
+
+      console.log("Payment Saved succesfully");
 
       return {
         clientSecret: paymentIntent.client_secret.toString(),
@@ -107,4 +120,4 @@ class paymentService {
   }
 }
 
-module.exports = paymentService;
+module.exports = new paymentService();

@@ -34,6 +34,11 @@ const orderSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    currency: {
+      type: String,
+      uppercase: true,
+      default: "USD",
+    },
     shippingAddress: {
       street: { type: String, required: true },
       city: { type: String, required: true },

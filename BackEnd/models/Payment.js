@@ -33,7 +33,11 @@ const PaymentSchema = new mongoose.Schema(
       required: true,
     },
     metaData: {
-      type: Object, //This is an optional object where you can store extra info related to the payment.
+      type: Object, //This is an optional object where we store extra info related to the payment.
+    },
+    receiptURL: {
+      type: String,
+      default: null,
     },
 
     failureMessage: String,
