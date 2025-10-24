@@ -47,7 +47,14 @@ const orderSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "confirmed", "shipped", "delivered", "cancelled"],
+      enum: [
+        "pending",
+        "confirmed",
+        "shipped",
+        "delivered",
+        "cancelled",
+        "refunded",
+      ],
       default: "pending",
     },
     paymentMethod: {
@@ -58,7 +65,7 @@ const orderSchema = new mongoose.Schema(
 
     paymentStatus: {
       type: String,
-      enum: ["pending", "paid", "failed"],
+      enum: ["pending", "paid", "failed", "refunded"],
       default: "pending",
     },
     StripePaymentIntentID: String,
@@ -68,15 +75,7 @@ const orderSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Virtuals in Mongoose are fields that are **not stored in MongoDB** but are computed dynamically
-// They are useful when you want a value derived from existing data without saving it in the database.
-
 orderSchema.virtual("calculatedTotal").get(function () {
-  // 'this' refers to the current document instance
-
-  // The reduce() function calculates the total price for the order
-  // by multiplying each item's quantity by its price and summing them up
-  // This allows us to get the total dynamically without storing it in totalAmount
   return this.orderItems.reduce(
     (acc, item) => acc + item.productQuantity * item.price,
     0

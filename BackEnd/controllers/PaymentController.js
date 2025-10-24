@@ -49,4 +49,23 @@ const getPaymentIntent = async (req, res) => {
   }
 };
 
-module.exports = { createPayment, getPaymentIntent };
+const paymentRefund = async (req, res) => {
+  try {
+    const { amount, orderId } = req.body;
+
+    console.log(req.body);
+
+    if (!orderId) {
+      return sendError(res, 400, "Enter valid OrderId");
+    }
+
+    const refund = await paymentService.createRefund(orderId, amount);
+
+    return sendSuccess(res, 200, "Payment Returned Successfully", refund);
+  } catch (error) {
+    console.error(error);
+    return sendError(res, 500, "Internal Server Error");
+  }
+};
+
+module.exports = { createPayment, getPaymentIntent, paymentRefund };

@@ -6,11 +6,7 @@ const Payment = require("../models/Payment");
 class paymentService {
   async createPayment(orderId, userId) {
     try {
-      console.log("Fetching order");
-
       const order = await Order.findById(orderId).populate("orderItems");
-
-      console.log(order);
 
       if (!order) {
         throw new Error("Order not found");
@@ -19,8 +15,6 @@ class paymentService {
       if (order.paymentMethod === "paid") {
         throw new Error("Order payment is already paid");
       }
-
-      console.log("creating the paymentINtent");
 
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(order.totalAmount * 100),
@@ -32,7 +26,7 @@ class paymentService {
 
       console.log(paymentIntent);
 
-      order.stripePaymentIntent = paymentIntent.id;
+      order.StripePaymentIntentID = paymentIntent.id;
       await order.save();
 
       console.log("Updating payment Schema");
@@ -118,6 +112,34 @@ class paymentService {
       );
     }
   }
-}
 
+  async createRefund(orderId, amount = null) {
+    try {
+      const order = await Order.findById(orderId);
+
+      if (!order || !order.StripePaymentIntentID) {
+        throw new Error(
+          "Order not present or StripePayment Intent Id not present"
+        );
+      }
+      const refundData = {
+        payment_intent: order.StripePaymentIntentID,
+      };
+
+      if (amount) {
+        refundData.amount = Math.round(amount * 100);
+      }
+
+      const refund = await stripe.refunds.create(refundData);
+
+      order.paymentStatus = "refunded";
+      order.status = "refunded";
+      await order.save();
+
+      return refund;
+    } catch (error) {
+      throw new Error(`Error Occured while creating a refund ${error.message}`);
+    }
+  }
+}
 module.exports = new paymentService();
